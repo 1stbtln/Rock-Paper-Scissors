@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rock Paper Scissors Battle Simulator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            color: #00aaff;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #aaaaaa;
+            margin-bottom: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .battle-arena {
+            position: relative;
+            width: 800px;
+            height: 500px;
+            margin: 0 auto 20px;
+            background-color: #1e1e1e;
+            border: 2px solid #333;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: default;
+        }
+        .placement-mode .battle-arena {
+            cursor: crosshair;
+        }
+        .entity {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+            transition: all 0.1s linear;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+            background-size: cover;
+            background-position: center;
+        }
+        .rock { 
+            background-image: url('assets/Dwayne.png');
+        }
+        .paper { 
+            background-image: url('assets/paper.png');
+        }
+        .scissors { 
+            background-image: url('assets/scissors.png');
+        }
+        
+        .controls-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            gap: 20px;
+        }
+        
+        .setup-panel, .simulation-panel {
+            background-color: #1e1e1e;
+            border-radius: 8px;
+            padding: 15px;
+            flex: 1;
+        }
+        
+        .panel-title {
+            font-size: 18px;
+            color: #00aaff;
+            margin-bottom: 15px;
+        }
+        
+        .entity-controls {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .entity-control {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            border-radius: 8px;
+            width: 30%;
+            transition: all 0.3s ease;
+        }
+        .rock-control { background-color: rgba(255, 82, 82, 0.2); border: 1px solid #ff5252; }
+        .paper-control { background-color: rgba(76, 175, 80, 0.2); border: 1px solid #4caf50; }
+        .scissors-control { background-color: rgba(33, 150, 243, 0.2); border: 1px solid #2196f3; }
+        
+        .entity-control.selected {
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        
+        .count-input {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            margin: 10px 0;
+        }
+        
+        .count-input input {
+            width: 50px;
+            background-color: #2a2a2a;
+            border: 1px solid #444;
+            color: white;
+            padding: 5px;
+            text-align: center;
+            border-radius: 4px;
+        }
+        
+        .count-display {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        .rock-count { color: #ff5252; }
+        .paper-count { color: #4caf50; }
+        .scissors-count { color: #2196f3; }
+        
+        .btn {
+            background-color: #00aaff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #0088cc;
+        }
+        .btn:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+        
+        .btn-rock { background-color: #ff5252; }
+        .btn-rock:hover { background-color: #e04848; }
+        
+        .btn-paper { background-color: #4caf50; }
+        .btn-paper:hover { background-color: #429a46; }
+        
+        .btn-scissors { background-color: #2196f3; }
+        .btn-scissors:hover { background-color: #1c80d2; }
+        
+        .btn-secondary {
+            background-color: #555;
+        }
+        .btn-secondary:hover {
+            background-color: #444;
+        }
+        
+        .btn-danger {
+            background-color: #f44336;
+        }
+        .btn-danger:hover {
+            background-color: #d32f2f;
+        }
+        
+        .placement-controls {
+            margin: 15px 0;
+        }
+        
+        .placement-mode-indicator {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .preset-buttons {
+            margin: 15px 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 5px;
+        }
+        
+        .simulation-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .speed-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 15px 0;
+        }
+        .speed-control label {
+            margin-right: 10px;
+        }
+        input[type="range"] {
+            width: 150px;
+            background-color: #2a2a2a;
+        }
+        
+        .winner-banner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.85);
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 100;
+            display: none;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+        }
+        .winner-text {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        
+        .status-message {
+            font-style: italic;
+            color: #aaa;
+            margin-top: 5px;
+            min-height: 20px;
+        }
+        
+        /* For the falling confetti */
+        @keyframes fall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+            }
+            100% {
+                transform: translateY(500px) rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Rock Paper Scissors Battle Simulator</h1>
+        <p class="subtitle">Create your own RPS battlefield and watch them compete!</p>
+        
+        <div class="battle-arena" id="arena">
+            <div class="winner-banner" id="winner-banner">
+                <div class="winner-text" id="winner-text"></div>
+                <button class="btn" id="reset-after-win">Start New Battle</button>
+            </div>
+        </div>
+        
+        <div class="controls-container">
+            <div class="setup-panel" id="setup-panel">
+                <div class="panel-title">Setup Battlefield</div>
+                
+                <div class="entity-controls">
+                    <div class="entity-control rock-control" id="rock-control">
+                        <div>Rocks (R)</div>
+                        <div class="count-display rock-count" id="rock-count">0</div>
+                        <div class="count-input">
+                            <label for="rock-input">Add:</label>
+                            <input type="number" id="rock-input" min="0" max="100" value="25">
+                        </div>
+                        <button class="btn btn-rock add-entity-btn" data-type="rock">Add Random Rocks</button>
+                    </div>
+                    
+                    <div class="entity-control paper-control" id="paper-control">
+                        <div>Papers (P)</div>
+                        <div class="count-display paper-count" id="paper-count">0</div>
+                        <div class="count-input">
+                            <label for="paper-input">Add:</label>
+                            <input type="number" id="paper-input" min="0" max="100" value="25">
+                        </div>
+                        <button class="btn btn-paper add-entity-btn" data-type="paper">Add Random Papers</button>
+                    </div>
+                    
+                    <div class="entity-control scissors-control" id="scissors-control">
+                        <div>Scissors (S)</div>
+                        <div class="count-display scissors-count" id="scissors-count">0</div>
+                        <div class="count-input">
+                            <label for="scissors-input">Add:</label>
+                            <input type="number" id="scissors-input" min="0" max="100" value="25">
+                        </div>
+                        <button class="btn btn-scissors add-entity-btn" data-type="scissors">Add Random Scissors</button>
+                    </div>
+                </div>
+                
+                <div class="placement-controls">
+                    <span class="placement-mode-indicator" id="placement-indicator">Normal Mode</span>
+                    <button class="btn" id="toggle-placement-mode">Enable Placement Mode</button>
+                    <button class="btn btn-danger" id="clear-entities">Clear All</button>
+                </div>
+                
+                <div class="preset-buttons">
+                    <button class="btn btn-secondary preset-btn" data-preset="equal">Even Distribution</button>
+                    <button class="btn btn-secondary preset-btn" data-preset="corners">Corner Territories</button>
+                    <button class="btn btn-secondary preset-btn" data-preset="battle-line">Battle Lines</button>
+                </div>
+
+                <div class="status-message" id="status-message"></div>
+            </div>
+            
+            <div class="simulation-panel">
+                <div class="panel-title">Simulation Controls</div>
+                
+                <div class="simulation-controls">
+                    <button class="btn" id="start-btn">Start Battle</button>
+                    <button class="btn" id="pause-btn" disabled>Pause</button>
+                    <button class="btn" id="reset-btn" disabled>Reset</button>
+                </div>
+                
+                <div class="speed-control">
+                    <label for="speed">Simulation Speed:</label>
+                    <input type="range" id="speed" min="1" max="10" value="5">
+                    <span id="speed-value">5x</span>
+                </div>
+                
+                <div class="entity-counts">
+                    <div>Rock vs Paper vs Scissors</div>
+                    <div style="font-size: 24px; margin: 10px 0;">
+                        <span class="rock-count" id="rock-count-display">0</span> : 
+                        <span class="paper-count" id="paper-count-display">0</span> : 
+                        <span class="scissors-count" id="scissors-count-display">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Configuration
+        const ARENA_WIDTH = 800;
+        const ARENA_HEIGHT = 500;
+        const ENTITY_SIZE = 30;
+        
+        // Preload assets
+        const clickSound = new Audio('assets/click.mp3');
+        
+        // Game elements
+        const arena = document.getElementById('arena');
+        const rockCount = document.getElementById('rock-count');
+        const paperCount = document.getElementById('paper-count');
+        const scissorsCount = document.getElementById('scissors-count');
+        const rockCountDisplay = document.getElementById('rock-count-display');
+        const paperCountDisplay = document.getElementById('paper-count-display');
+        const scissorsCountDisplay = document.getElementById('scissors-count-display');
+        
+        const rockInput = document.getElementById('rock-input');
+        const paperInput = document.getElementById('paper-input');
+        const scissorsInput = document.getElementById('scissors-input');
+        
+        const startBtn = document.getElementById('start-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const speedControl = document.getElementById('speed');
+        const speedValue = document.getElementById('speed-value');
+        const togglePlacementBtn = document.getElementById('toggle-placement-mode');
+        const placementIndicator = document.getElementById('placement-indicator');
+        const clearEntitiesBtn = document.getElementById('clear-entities');
+        const statusMessage = document.getElementById('status-message');
+        
+        const addEntityBtns = document.querySelectorAll('.add-entity-btn');
+        const presetBtns = document.querySelectorAll('.preset-btn');
+        
+        const winnerBanner = document.getElementById('winner-banner');
+        const winnerText = document.getElementById('winner-text');
+        const resetAfterWinBtn = document.getElementById('reset-after-win');
+        
+        // Game state
+        let entities = [];
+        let animationId = null;
+        let speed = 5;
+        let lastFrameTime = 0;
+        let running = false;
+        let paused = false;
+        let placementMode = false;
+        let selectedEntityType = null;
+        let entityControls = {
+            rock: document.getElementById('rock-control'),
+            paper: document.getElementById('paper-control'),
+            scissors: document.getElementById('scissors-control')
+        };
+        
+        let currentCounts = {
+            rock: 0,
+            paper: 0,
+            scissors: 0
+        };
+        
+        // Initialize the arena
+        function init() {
+            clearAllEntities();
+            setupEventListeners();
+            updateCountDisplay();
+            updateSpeedDisplay();
+        }
+        
+        function setupEventListeners() {
+            // Arena click for placement
+            arena.addEventListener('click', handleArenaClick);
+            
+            // Add entity buttons
+            addEntityBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const type = btn.getAttribute('data-type');
+                    const count = parseInt(document.getElementById(`${type}-input`).value);
+                    addRandomEntities(type, count);
+                });
+            });
+            
+            // Toggle placement mode
+            togglePlacementBtn.addEventListener('click', togglePlacementMode);
+            
+            // Clear entities
+            clearEntitiesBtn.addEventListener('click', clearAllEntities);
+            
+            // Preset configurations
+            presetBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const preset = btn.getAttribute('data-preset');
+                    loadPreset(preset);
+                });
+            });
+            
+            // Entity type selection for placement
+            Object.keys(entityControls).forEach(type => {
+                entityControls[type].addEventListener('click', () => {
+                    if (placementMode) {
+                        selectEntityType(type);
+                    }
+                });
+            });
+            
+            // Simulation controls
+            startBtn.addEventListener('click', startSimulation);
+            pauseBtn.addEventListener('click', togglePause);
+            resetBtn.addEventListener('click', resetSimulation);
+            resetAfterWinBtn.addEventListener('click', resetSimulation);
+            
+            // Speed control
+            speedControl.addEventListener('input', (e) => {
+                speed = parseInt(e.target.value);
+                updateSpeedDisplay();
+            });
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (placementMode) {
+                    if (e.key === 'r') selectEntityType('rock');
+                    if (e.key === 'p') selectEntityType('paper');
+                    if (e.key === 's') selectEntityType('scissors');
+                    if (e.key === 'Escape') togglePlacementMode();
+                }
+                
+                if (e.key === ' ' && !running) startSimulation();
+                if (e.key === ' ' && running) togglePause();
+            });
+        }
+        
+        // Entity creation and management
+        function createEntity(type, x, y, randomVelocity = true) {
+            const entity = {
+                type: type,
+                x: x !== undefined ? x : Math.random() * (ARENA_WIDTH - ENTITY_SIZE),
+                y: y !== undefined ? y : Math.random() * (ARENA_HEIGHT - ENTITY_SIZE),
+                dx: randomVelocity ? (Math.random() - 0.5) * 2 : 0,
+                dy: randomVelocity ? (Math.random() - 0.5) * 2 : 0,
+                element: document.createElement('div')
+            };
+            
+            entity.element.className = `entity ${type}`;
+            entity.element.style.left = `${entity.x}px`;
+            entity.element.style.top = `${entity.y}px`;
+            
+            arena.appendChild(entity.element);
+            entities.push(entity);
+            currentCounts[type]++;
+            
+            updateCountDisplay();
+            return entity;
+        }
+        
+        function addRandomEntities(type, count) {
+            if (running) return;
+            
+            for (let i = 0; i < count; i++) {
+                createEntity(type);
+            }
+            
+            showStatusMessage(`Added ${count} random ${type}(s)`);
+        }
+        
+        function clearAllEntities() {
+            // Remove all entities
+            entities.forEach(entity => {
+                if (entity.element.parentNode) {
+                    entity.element.parentNode.removeChild(entity.element);
+                }
+            });
+            
+            entities = [];
+            currentCounts = {
+                rock: 0,
+                paper: 0,
+                scissors: 0
+            };
+            
+            updateCountDisplay();
+            showStatusMessage('Arena cleared');
+        }
+        
+        // Placement mode
+        function togglePlacementMode() {
+            placementMode = !placementMode;
+            
+            if (placementMode) {
+                document.body.classList.add('placement-mode');
+                placementIndicator.textContent = 'Placement Mode';
+                placementIndicator.style.backgroundColor = '#ff9800';
+                placementIndicator.style.color = '#000';
+                togglePlacementBtn.textContent = 'Disable Placement Mode';
+                selectEntityType('rock'); // Default to rock
+                showStatusMessage('Click on the arena to place entities. Press R, P, or S to switch types.');
+            } else {
+                document.body.classList.remove('placement-mode');
+                placementIndicator.textContent = 'Normal Mode';
+                placementIndicator.style.backgroundColor = '';
+                placementIndicator.style.color = '';
+                togglePlacementBtn.textContent = 'Enable Placement Mode';
+                unselectAllEntityTypes();
+                showStatusMessage('');
+            }
+        }
+        
+        function selectEntityType(type) {
+            selectedEntityType = type;
+            unselectAllEntityTypes();
+            entityControls[type].classList.add('selected');
+        }
+        
+        function unselectAllEntityTypes() {
+            Object.values(entityControls).forEach(control => {
+                control.classList.remove('selected');
+            });
+        }
+        
+        function handleArenaClick(e) {
+            if (!placementMode || running) return;
+            
+            // Get position relative to arena
+            const rect = arena.getBoundingClientRect();
+            const x = e.clientX - rect.left - (ENTITY_SIZE / 2);
+            const y = e.clientY - rect.top - (ENTITY_SIZE / 2);
+            
+            if (selectedEntityType) {
+                createEntity(selectedEntityType, x, y, false);
+                showStatusMessage(`Placed a ${selectedEntityType} at (${Math.round(x)}, ${Math.round(y)})`);
+            }
+        }
+        
+        // Preset configurations
+        function loadPreset(presetName) {
+            if (running) return;
+            
+            clearAllEntities();
+            
+            switch (presetName) {
+                case 'equal':
+                    // Even distribution across the arena
+                    for (let i = 0; i < 20; i++) {
+                        createEntity('rock');
+                        createEntity('paper');
+                        createEntity('scissors');
+                    }
+                    showStatusMessage('Loaded even distribution preset');
+                    break;
+                    
+                case 'corners':
+                    // Entities clustered in corners
+                    for (let i = 0; i < 20; i++) {
+                        // Top left: rocks
+                        createEntity('rock', 
+                            Math.random() * 150, 
+                            Math.random() * 150);
+                            
+                        // Top right: papers
+                        createEntity('paper', 
+                            ARENA_WIDTH - 150 - ENTITY_SIZE + Math.random() * 150, 
+                            Math.random() * 150);
+                            
+                        // Bottom: scissors
+                        createEntity('scissors', 
+                            ARENA_WIDTH/2 - 150 + Math.random() * 300, 
+                            ARENA_HEIGHT - 150 - ENTITY_SIZE + Math.random() * 150);
+                    }
+                    showStatusMessage('Loaded corner territories preset');
+                    break;
+                    
+                case 'battle-line':
+                    // Three lines facing each other
+                    for (let i = 0; i < 20; i++) {
+                        // Left: rocks in a vertical line
+                        createEntity('rock', 
+                            100 + Math.random() * 50, 
+                            50 + Math.random() * (ARENA_HEIGHT - 100));
+                            
+                        // Middle: papers in a vertical line
+                        createEntity('paper', 
+                            ARENA_WIDTH/2 - 25 + Math.random() * 50, 
+                            50 + Math.random() * (ARENA_HEIGHT - 100));
+                            
+                        // Right: scissors in a vertical line
+                        createEntity('scissors', 
+                            ARENA_WIDTH - 150 + Math.random() * 50, 
+                            50 + Math.random() * (ARENA_HEIGHT - 100));
+                    }
+                    showStatusMessage('Loaded battle lines preset');
+                    break;
+            }
+        }
+        
+        // Simulation
+        function startSimulation() {
+            if (entities.length === 0) {
+                showStatusMessage('Please add some entities before starting');
+                return;
+            }
+            
+            // Make sure entities start with random velocities
+            entities.forEach(entity => {
+                if (entity.dx === 0 && entity.dy === 0) {
+                    entity.dx = (Math.random() - 0.5) * 2;
+                    entity.dy = (Math.random() - 0.5) * 2;
+                }
+            });
+            
+            running = true;
+            paused = false;
+            startBtn.disabled = true;
+            pauseBtn.disabled = false;
+            resetBtn.disabled = false;
+            togglePlacementBtn.disabled = true;
+            clearEntitiesBtn.disabled = true;
+            addEntityBtns.forEach(btn => btn.disabled = true);
+            presetBtns.forEach(btn => btn.disabled = true);
+            
+            showStatusMessage('Battle started');
+            lastFrameTime = 0;
+            animationId = requestAnimationFrame(animate);
+        }
+        
+        function togglePause() {
+            paused = !paused;
+            
+            if (paused) {
+                pauseBtn.textContent = 'Resume';
+                showStatusMessage('Simulation paused');
+            } else {
+                pauseBtn.textContent = 'Pause';
+                showStatusMessage('Simulation resumed');
+                lastFrameTime = 0;
+                animationId = requestAnimationFrame(animate);
+            }
+        }
+        
+        function stopSimulation() {
+            running = false;
+            paused = false;
+            
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+            pauseBtn.textContent = 'Pause';
+            resetBtn.disabled = false;
+            togglePlacementBtn.disabled = false;
+            clearEntitiesBtn.disabled = false;
+            addEntityBtns.forEach(btn => btn.disabled = false);
+            presetBtns.forEach(btn => btn.disabled = false);
+        }
+        
+        function resetSimulation() {
+            stopSimulation();
+            winnerBanner.style.display = 'none';
+            
+            // Reset velocities for all entities
+            entities.forEach(entity => {
+                entity.dx = (Math.random() - 0.5) * 2;
+                entity.dy = (Math.random() - 0.5) * 2;
+            });
+            
+            showStatusMessage('Simulation reset');
+        }
+        
+        // Animation loop
+        function animate(timestamp) {
+            if (!running || paused) return;
+            
+            // Limit frame rate based on speed
+            const frameInterval = 1000 / (speed * 10);
+            const elapsed = timestamp - lastFrameTime;
+            
+            if (elapsed > frameInterval) {
+                lastFrameTime = timestamp - (elapsed % frameInterval);
+                
+                try {
+                    moveEntities();
+                    checkCollisions();
+                    updatePositions();
+                    checkWinCondition();
+                } catch (error) {
+                    console.error("Error in animation loop:", error);
+                    stopSimulation();
+                    showStatusMessage('Error in simulation: ' + error.message);
+                    return;
+                }
+            }
+            
+            animationId = requestAnimationFrame(animate);
+        }
+        
+        function moveEntities() {
+            entities.forEach(entity => {
+                // Move entity
+                entity.x += entity.dx;
+                entity.y += entity.dy;
+                
+                // Bounce off walls
+                if (entity.x <= 0 || entity.x >= ARENA_WIDTH - ENTITY_SIZE) {
+                    entity.dx *= -1;
+                    entity.x = Math.max(0, Math.min(entity.x, ARENA_WIDTH - ENTITY_SIZE));
+                }
+                
+                if (entity.y <= 0 || entity.y >= ARENA_HEIGHT - ENTITY_SIZE) {
+                    entity.dy *= -1;
+                    entity.y = Math.max(0, Math.min(entity.y, ARENA_HEIGHT - ENTITY_SIZE));
+                }
+            });
+        }
+        
+        function checkCollisions() {
+            // Optimization: Skip if too many entities to prevent performance issues
+            if (entities.length > 300) {
+                console.warn("Too many entities, using simplified collision detection");
+                checkCollisionsSimplified();
+                return;
+            }
+            
+            for (let i = 0; i < entities.length; i++) {
+                for (let j = i + 1; j < entities.length; j++) {
+                    const entity1 = entities[i];
+                    const entity2 = entities[j];
+                    
+                    // Check for collision
+                    const dx = entity1.x - entity2.x;
+                    const dy = entity1.y - entity2.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < ENTITY_SIZE) {
+                        // Handle collision based on rock-paper-scissors rules
+                        handleCollision(entity1, entity2);
+                        
+                        // Bounce away from each other
+                        const angle = Math.atan2(dy, dx);
+                        const force = 1.2;
+                        
+                        entity1.dx = Math.cos(angle) * force;
+                        entity1.dy = Math.sin(angle) * force;
+                        entity2.dx = -Math.cos(angle) * force;
+                        entity2.dy = -Math.sin(angle) * force;
+                    }
+                }
+            }
+        }
+        
+        function checkCollisionsSimplified() {
+            // Simple collision detection for large entity counts
+            // Create a spatial grid for faster neighbor checking
+            const cellSize = ENTITY_SIZE * 2;
+            const grid = {};
+            
+            // Place entities in grid cells
+            entities.forEach(entity => {
+                const cellX = Math.floor(entity.x / cellSize);
+                const cellY = Math.floor(entity.y / cellSize);
+                const cellKey = `${cellX},${cellY}`;
+                
+                if (!grid[cellKey]) grid[cellKey] = [];
+                grid[cellKey].push(entity);
+            });
+            
+            // Check collisions only within the same cell and adjacent cells
+            entities.forEach(entity1 => {
+                const cellX = Math.floor(entity1.x / cellSize);
+                const cellY = Math.floor(entity1.y / cellSize);
+                
+                // Check in current cell and adjacent cells
+                for (let x = cellX - 1; x <= cellX + 1; x++) {
+                    for (let y = cellY - 1; y <= cellY + 1; y++) {
+                        const cellKey = `${x},${y}`;
+                        const cellEntities = grid[cellKey];
+                        
+                        if (cellEntities) {
+                            cellEntities.forEach(entity2 => {
+                                if (entity1 !== entity2) {
+                                    const dx = entity1.x - entity2.x;
+                                    const dy = entity1.y - entity2.y;
+                                    const distanceSquared = dx * dx + dy * dy;
+                                    
+                                    if (distanceSquared < ENTITY_SIZE * ENTITY_SIZE) {
+                                        handleCollision(entity1, entity2);
+                                        
+                                        const angle = Math.atan2(dy, dx);
+                                        const force = 1.2;
+                                        
+                                        entity1.dx = Math.cos(angle) * force;
+                                        entity1.dy = Math.sin(angle) * force;
+                                        entity2.dx = -Math.cos(angle) * force;
+                                        entity2.dy = -Math.sin(angle) * force;
+                                    }
+                                }
+                            });
+                        }
+                    }
+                }
+            });
+        }
+        
+        function handleCollision(entity1, entity2) {
+            // Skip if same type
+            if (entity1.type === entity2.type) return;
+            
+            // Play sound effect
+            playCollisionSound();
+            
+            // Rock beats scissors, scissors beats paper, paper beats rock
+            if ((entity1.type === 'rock' && entity2.type === 'scissors') ||
+                (entity1.type === 'scissors' && entity2.type === 'paper') ||
+                (entity1.type === 'paper' && entity2.type === 'rock')) {
+                // Entity 1 wins
+                convertEntity(entity2, entity1.type);
+            } else {
+                // Entity 2 wins
+                convertEntity(entity1, entity2.type);
+            }
+        }
+        
+        function playCollisionSound() {
+            // Clone and play the sound for overlapping effects
+            const soundClone = clickSound.cloneNode();
+            soundClone.volume = 0.5;  // Adjust volume
+            soundClone.play().catch(e => console.log("Sound play error:", e));
+        }
+        
+        function convertEntity(entity, newType) {
+            // Decrease count of old type
+            currentCounts[entity.type]--;
+            
+            // Update entity
+            entity.type = newType;
+            entity.element.className = `entity ${newType}`;
+            
+            // Increase count of new type
+            currentCounts[newType]++;
+            
+            // Update display
+            updateCountDisplay();
+        }
+        
+        function updatePositions() {
+            entities.forEach(entity => {
+                entity.element.style.left = `${entity.x}px`;
+                entity.element.style.top = `${entity.y}px`;
+            });
+        }
+        
+        function checkWinCondition() {
+            // Check if any type has conquered all others
+            if (currentCounts.rock === 0 && currentCounts.scissors === 0) {
+                declareWinner('Paper');
+            } else if (currentCounts.paper === 0 && currentCounts.rock === 0) {
+                declareWinner('Scissors');
+            } else if (currentCounts.scissors === 0 && currentCounts.paper === 0) {
+                declareWinner('Rock');
+            }
+        }
+        
+        function declareWinner(winner) {
+            stopSimulation();
+            
+            winnerText.textContent = `${winner} Wins the Battle!`;
+            winnerBanner.style.display = 'block';
+            
+            // Create confetti effect for the winner
+            const colors = winner === 'Rock' ? ['#ff5252', '#ff7b7b', '#ff9e9e'] :
+                          winner === 'Paper' ? ['#4caf50', '#7fd683', '#a4e9a7'] :
+                          ['#2196f3', '#64b5f6', '#90caf9'];
+            
+            createConfetti(colors);
+            showStatusMessage(`Battle over! ${winner} has conquered the arena!`);
+        }
+        
+        function createConfetti(colors) {
+            for (let i = 0; i < 150; i++) {
+                const confetti = document.createElement('div');
+                confetti.style.position = 'absolute';
+                confetti.style.width = Math.random() * 10 + 5 + 'px';
+                confetti.style.height = Math.random() * 10 + 5 + 'px';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.top = -20 + 'px';
+                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                confetti.style.zIndex = '50';
+                arena.appendChild(confetti);
+                
+                // Animate falling
+                const animationDuration = Math.random() * 3 + 2;
+                confetti.style.animation = `fall ${animationDuration}s linear forwards`;
+                
+                // Remove after animation
+                setTimeout(() => {
+                    if (confetti.parentNode) {
+                        confetti.parentNode.removeChild(confetti);
+                    }
+                }, animationDuration * 1000);
+            }
+        }
+        
+        // UI Updates
+        function updateCountDisplay() {
+            rockCount.textContent = currentCounts.rock;
+            paperCount.textContent = currentCounts.paper;
+            scissorsCount.textContent = currentCounts.scissors;
+            
+            rockCountDisplay.textContent = currentCounts.rock;
+            paperCountDisplay.textContent = currentCounts.paper;
+            scissorsCountDisplay.textContent = currentCounts.scissors;
+        }
+        
+        function updateSpeedDisplay() {
+            speedValue.textContent = `${speed}x`;
+        }
+        
+        function showStatusMessage(message) {
+            statusMessage.textContent = message;
+            
+            // Clear message after a delay unless it's important
+            if (!message.includes('Error') && !message.includes('Battle over')) {
+                setTimeout(() => {
+                    if (statusMessage.textContent === message) {
+                        statusMessage.textContent = '';
+                    }
+                }, 3000);
+            }
+        }
+        
+        // Initialize the app
+        init();
+    </script>
+</body>
+</html>
